@@ -1,0 +1,126 @@
+{
+  "head": "38313bf2",
+  "nodes": [
+    {
+      "id": "root",
+      "index": 0,
+      "instruction": "(start)",
+      "parent": null,
+      "sandbox": "fake-0001",
+      "state": "live",
+      "exit_code": null,
+      "stdout": "",
+      "rationale": "",
+      "children": [
+        "d71d06e9"
+      ]
+    },
+    {
+      "id": "d71d06e9",
+      "index": 1,
+      "instruction": "echo 'def add(a,b): return a+b' > calc.py",
+      "parent": "root",
+      "sandbox": "fake-0001",
+      "state": "live",
+      "exit_code": 0,
+      "stdout": "",
+      "rationale": "",
+      "children": [
+        "4c0c288c",
+        "38313bf2",
+        "8326f3a1",
+        "3a272340"
+      ]
+    },
+    {
+      "id": "4c0c288c",
+      "index": 2,
+      "instruction": "echo 'assert add(2,2)==4' > test.py",
+      "parent": "d71d06e9",
+      "sandbox": "fake-0001",
+      "state": "live",
+      "exit_code": 0,
+      "stdout": "",
+      "rationale": "",
+      "children": [
+        "cd1c2728"
+      ]
+    },
+    {
+      "id": "cd1c2728",
+      "index": 3,
+      "instruction": "python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "4c0c288c",
+      "sandbox": "fake-0001",
+      "state": "live",
+      "exit_code": 0,
+      "stdout": "ran: python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "rationale": "",
+      "children": [
+        "0d30e654"
+      ]
+    },
+    {
+      "id": "0d30e654",
+      "index": 4,
+      "instruction": "echo 'def add(a,b): return a-b' > calc.py",
+      "parent": "cd1c2728",
+      "sandbox": "fake-0001",
+      "state": "live",
+      "exit_code": 0,
+      "stdout": "",
+      "rationale": "",
+      "children": [
+        "60145471"
+      ]
+    },
+    {
+      "id": "60145471",
+      "index": 5,
+      "instruction": "python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "0d30e654",
+      "sandbox": "fake-0001",
+      "state": "live",
+      "exit_code": 0,
+      "stdout": "ran: python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "rationale": "",
+      "children": []
+    },
+    {
+      "id": "38313bf2",
+      "index": 6,
+      "instruction": "echo 'def add(a,b): return a+b' > calc.py && python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "d71d06e9",
+      "sandbox": "fake-0002",
+      "state": "live",
+      "exit_code": 0,
+      "stdout": "",
+      "rationale": "",
+      "children": []
+    },
+    {
+      "id": "8326f3a1",
+      "index": 7,
+      "instruction": "echo 'def add(a,b): return sum([a,b])' > calc.py && python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "d71d06e9",
+      "sandbox": "fake-0003",
+      "state": "released",
+      "exit_code": 0,
+      "stdout": "",
+      "rationale": "",
+      "children": []
+    },
+    {
+      "id": "3a272340",
+      "index": 8,
+      "instruction": "echo 'def add(a,b): return a*b' > calc.py && python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "d71d06e9",
+      "sandbox": "fake-0004",
+      "state": "released",
+      "exit_code": 0,
+      "stdout": "",
+      "rationale": "",
+      "children": []
+    }
+  ]
+}
