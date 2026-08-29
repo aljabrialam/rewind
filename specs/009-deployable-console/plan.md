@@ -48,13 +48,18 @@ blob store, keyed by a fixed name; `web/public/tree.json` (a copy of the
 Specification 006 committed `fixtures/tree.json`) is the shipped fallback baked
 into the build.
 
-**Testing**: `vitest` (or plain node test) for `web/api` accept/reject/serve
-logic — valid upload accepted, missing/wrong secret rejected, malformed body
-rejected, oversize body rejected, read after a rejected write unchanged, read
-with an empty store returns the shipped fixture. Python `pytest` reuse of the
-Specification 006 `console_fixture` shape test as the contract the payload must
-satisfy. **No UI-rendering tests** (Article VI) — the run view is signed off with
-Specification 006's `checklists/visual-acceptance.md`.
+**Testing**: `vitest` for `web/api` accept/reject/serve logic — valid upload
+accepted, missing/wrong secret rejected, malformed body rejected, oversize body
+rejected, read after a rejected write unchanged, read with an empty store returns
+the shipped fixture. Python `pytest` reuse of the Specification 006
+`console_fixture` shape test as the contract the payload must satisfy. One
+**Playwright E2E** (`web/tests/e2e/`) fills Article VI's "Top — E2E" slot — a
+scripted pass over the demonstration path (live-fixture render, bundled-fixture
+fallback banner, HEAD marker, replay through every stage and back to live,
+replay with all network blocked, checkpoint-select + request-record with no
+runtime call); it asserts on behaviour, DOM presence and network only. **No
+UI-rendering assertions** (Article VI — no pixels/layout); the visual pass is
+still Specification 006's `checklists/visual-acceptance.md`.
 
 **Target Platform**: Vercel (static build for `web/` + one Node serverless
 function). Any static-host-with-functions provider works; Vercel is the named
@@ -85,7 +90,7 @@ one fixture; 10 FRs, 6 NFRs.
 | I — Demo Primacy | Work must reach the screen; the deliverable is the 2-minute live demo | The live demo is unchanged — it drives `ui/console.html` locally. This feature is a **shared** surface for remote viewers, explicitly off the critical path (spec Assumptions). It reaches *a* screen — a URL others can open. **Pass, with the honest framing that it is not the demo itself.** |
 | II — Specification First | Tech names only in the plan | Spec 009 names only "a public URL", "a build step", "a fixture endpoint", "a shared secret". This plan names React / Vite / TypeScript / Vercel / `@vercel/blob`. **Pass** |
 | IV — Nothing Is Invented | No runtime capability used unless observed; all runtime access via one port | This feature makes **no** runtime call — the console reads a fixture, the endpoint stores a blob. `@vercel/blob` is a hosting concern, not the sandbox runtime; it is not behind the sandbox port and does not need to be. **Pass** |
-| VI — Traceability & Pyramid + "what is not tested" | FR → named test; **UI rendering is not tested** | The endpoint's accept/reject/serve logic gets pure-logic tests; the Console Fixture shape is the reused Specification 006 test; the run view's rendering is out of automated scope per Article VI, signed off with Specification 006's visual-acceptance checklist. FR→check map in [quickstart.md](quickstart.md). **Pass** |
+| VI — Traceability & Pyramid + "what is not tested" | FR → named test; base pure-logic, one Top E2E; **UI rendering is not tested** | Endpoint accept/reject/serve logic → `vitest` pure-logic (base); Console Fixture shape → reused Specification 006 test; one Playwright E2E over the demonstration path fills the pyramid's single Top slot, asserting behaviour/DOM/network only — **no pixel or layout assertions**, so "UI rendering is not tested" holds. The visual pass stays Specification 006's `checklists/visual-acceptance.md` + this feature's D1–D7 / R1. FR→check map in [quickstart.md](quickstart.md). **Pass** |
 | VIII — Sponsor Integration Is Load-Bearing; additive integrations carry a stop line | No hour spent on additive integrations before the graded one is demo-complete; nothing additive on the critical path | This is a hosting/visibility feature, not a sponsor integration. It touches no sandbox runtime and no reasoning provider, and sits off the demo critical path. It is built only after Specifications 000–006 are demo-complete. **Pass** |
 | X — Evidence Over Assertion | Evidence and rationale visually distinct; a verdict shows its evidence | Reproduced verbatim from Specification 006 — FR-009-01 carries FR-006-06 and FR-006-08 forward; the verdict block stays marked "judged on execution evidence". **Pass** |
 | XI — Proven In The Runtime, Live | The demo runs live on stage; the backup recording is not the plan | The hosted console renders a fixture and is **not** presented as the live proof. The sandbox lifecycle stays proven locally on stage. This feature does not touch that. **Pass** |

@@ -58,6 +58,10 @@ Everything new is under `web/` or `tools/`. `demo.py` gets one additive env-gate
 
 **Checkpoint**: `cd web && npm run test` green.
 
+- [X] T012a [P] `web/tests/e2e/console.spec.ts` + `web/playwright.config.ts` — the pyramid's single **Top — E2E** (Article VI): scripted Chromium pass over the demonstration path against `npm run dev`. Six specs: live-fixture render (rail/lanes/verdict/footer, no sample banner); HEAD marker on a rail checkpoint (`::after` "HEAD"); bundled-fixture fallback shows the "sample data — not a live push" banner; replay steps seed→fail→rewind→fan-out→verdict then returns to the live view; replay completes with **all** network blocked (client-only proof); select a checkpoint → evidence updates, **Restore** records a request row and 0 external requests fire. Behaviour/DOM/network assertions only — no pixels/layout. `vite.config.ts` excludes `tests/e2e/**` from `vitest`.
+
+**Checkpoint**: `cd web && npm run test:e2e` green (`npx playwright install chromium` once).
+
 ---
 
 ## Phase 4: User Story 1 — Open the run at a link (Priority: P1) 🎯 MVP

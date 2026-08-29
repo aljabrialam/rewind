@@ -26,7 +26,9 @@ To exercise the endpoint locally, use the deploy target's dev command
 ```bash
 cd web
 npm run build                   # → web/dist/  (static) + the serverless api/ function
-npm run test                    # web/api accept/reject/serve logic (Article VI: no UI-rendering test)
+npm run test                    # web/api accept/reject/serve logic (vitest)
+npx playwright install chromium # once
+npm run test:e2e                # the one Top-E2E pass over the demonstration path (Playwright)
 ```
 
 ## Deploy (Vercel — the named target)
@@ -58,35 +60,36 @@ With neither env var set, `demo.py` behaves byte-for-byte as in Specification 00
 
 ## FR / NFR / SC → verification
 
-`ep` = `web/api/__tests__/fixture.test.ts`; `cf` =
-`tests/unit/test_console_fixture.py` (Specification 006, reused); `va` = a
+`ep` = `web/api/__tests__/fixture.test.ts`; `e2e` = `web/tests/e2e/console.spec.ts`
+(the one Top-E2E pass); `cf` = `tests/unit/test_console_fixture.py`
+(Specification 006, reused); `va` = a
 [visual-acceptance.md](checklists/visual-acceptance.md) item (which for the run
 view points at Specification 006's checklist).
 
 | Requirement | Verified by |
 |---|---|
-| FR-009-01 full Specification 006 run view | `cf` (payload shape) + `va` "006 parity" (all ten FR-006 items) |
+| FR-009-01 full Specification 006 run view | `cf` (payload shape) + `e2e` "renders the run from a live fixture" + `e2e` "marks the head checkpoint" + `va` "006 parity" (all ten FR-006 items) |
 | FR-009-02 reachable at a public URL, nothing local | `va` D1 (open deployed URL in a clean profile) |
 | FR-009-03 single endpoint, polled, no manual refresh | `ep::get_returns_fixture` + `va` D2 (push → hosted view advances) |
 | FR-009-04 authenticated upload becomes what is served | `ep::valid_post_is_served_by_next_get` |
 | FR-009-05 no / wrong secret rejected, no state change | `ep::missing_token_401_no_change`, `ep::wrong_token_401_no_change` |
 | FR-009-06 malformed body rejected, no state change | `ep::malformed_body_422_no_change` |
-| FR-009-07 fallback shipped → sample, notice on screen | `ep::get_empty_store_returns_bundled` + `va` D3 (endpoint down → sample notice) |
-| FR-009-08 no runtime/engine connection | `va` D4 (Network tab: only `/api/fixture` + `/tree.json`) |
+| FR-009-07 fallback shipped → sample, notice on screen | `ep::get_empty_store_returns_bundled` + `e2e` "falls back to the bundled fixture with an honest banner" + `va` D3 |
+| FR-009-08 no runtime/engine connection | `e2e` "restore records a request, no runtime call" (0 external requests) + `e2e` "replay is client-only" + `va` D4 |
 | FR-009-09 push optional; failure never affects the local run | `ep` (helper contract) + `va` D5 (`demo.py` with no env vars = unchanged) |
 | FR-009-10 mono = runtime-issued, face = derived | `va` FR-006-09 (reused) |
-| FR-009-11 replay control — client-only playback, honest banner, resumes live | `va` R1 (press Replay on the deployed URL; Network tab shows no call) |
+| FR-009-11 replay control — client-only playback, honest banner, resumes live | `e2e` "replay plays the run's stages back, then resumes the live view" + `e2e` "replay is client-only — completes with all network blocked" + `va` R1 |
 | NFR-009-01 build step scoped to `web/`; `ui/console.html` unchanged | `va` D6 (`git status` shows no `ui/` change) |
 | NFR-009-02 deployable from `web/` alone | `va` D1 (root dir `web/`) |
 | NFR-009-03 matches Specification 006 Design Reference | `va` (palette / type / layout, reused from 006) |
 | NFR-009-04 upload size-capped, stored as data only | `ep::oversize_body_413`, `ep` (no eval of body) |
 | NFR-009-05 no secret in the client bundle | `va` D7 (grep `web/dist` for the token value → nothing) |
-| NFR-009-06 failed/malformed poll keeps last good fixture | `ep` + `va` D3 |
+| NFR-009-06 failed/malformed poll keeps last good fixture | `ep` + `e2e` "falls back to the bundled fixture" + `va` D3 |
 
 | Success criterion | Verified by |
 |---|---|
 | SC-009-01 | `va` D1 |
-| SC-009-02 | `va` "006 parity" |
+| SC-009-02 | `e2e` (live render, HEAD marker, fallback banner) + `va` "006 parity" |
 | SC-009-03 | `va` D2 |
 | SC-009-04 | `ep::*_no_change` group |
 | SC-009-05 | `va` D5 |
@@ -94,14 +97,14 @@ view points at Specification 006's checklist).
 | SC-009-07 | `va` D7 |
 | SC-009-08 | `va` FR-006-09 (reused) |
 | SC-009-09 | `va` D6 |
-| SC-009-10 | `va` R1 |
+| SC-009-10 | `e2e` "replay …" (both replay specs) + `va` R1 |
 
 ---
 
 ## Gate checkpoints
 
-- **G2**: `npm run test` green in `web/`; `npm run build` succeeds; the built
-  console renders `web/public/tree.json`.
+- **G2**: `npm run test` and `npm run test:e2e` green in `web/`; `npm run build`
+  succeeds; the built console renders `web/public/tree.json`.
 - **G3**: the full visual-acceptance list (006 parity + D1–D7) passes; a live
   deploy URL exists; `git status` shows no change under `src/rewind/` or `ui/`;
   the README carries the hosted-console entry, framed as a shared view, not the

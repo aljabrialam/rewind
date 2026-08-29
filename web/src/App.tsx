@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFixture } from "./useFixture";
-import { isBranchNode, type ActionRequest, type ConsoleFixture } from "./types";
-import { buildReplayFrames, REPLAY_FRAME_MS, REPLAY_HOLD_MS } from "./replay";
+import { isBranchNode, type ActionRequest } from "./types";
+import {
+  buildReplayFrames,
+  REPLAY_FRAME_MS,
+  REPLAY_HOLD_MS,
+  type ReplayFrame,
+} from "./replay";
 import { Rail } from "./components/Rail";
 import { BranchLanes } from "./components/BranchLanes";
 import { VerdictCard } from "./components/VerdictCard";
@@ -20,7 +25,7 @@ export default function App() {
   const [requests, setRequests] = useState<ActionRequest[]>([]);
 
   // --- replay: play the current run's shape back through the same components ---
-  const [replay, setReplay] = useState<{ frames: ConsoleFixture[]; i: number } | null>(
+  const [replay, setReplay] = useState<{ frames: ReplayFrame[]; i: number } | null>(
     null,
   );
   const timer = useRef<number | undefined>(undefined);
@@ -49,7 +54,8 @@ export default function App() {
   }
 
   const replaying = replay !== null;
-  const fixture = replaying ? replay!.frames[replay!.i] : liveFixture;
+  const fixture = replaying ? replay!.frames[replay!.i].fixture : liveFixture;
+  const replayCaption = replaying ? replay!.frames[replay!.i].caption : null;
 
   const nodes = fixture.nodes ?? [];
   const branches = useMemo(
@@ -100,8 +106,16 @@ export default function App() {
       </div>
 
       {replaying ? (
-        <div className="notice replay">
-          ▶ replaying a recorded run — not a live push
+        <div className="replayNarration">
+          <div className="notice replay">
+            ▶ replaying a recorded run — not a live push
+          </div>
+          <div className="replayCaption">
+            <span className="step">
+              {replay!.i + 1} / {replay!.frames.length}
+            </span>
+            {replayCaption}
+          </div>
         </div>
       ) : (
         source !== "live" && <div className="notice">{NOTICE[source]}</div>
