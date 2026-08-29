@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "capture:replay": "node scripts/capture-replay.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^0.27.0",

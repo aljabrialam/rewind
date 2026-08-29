@@ -11,3 +11,6 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# capture artifacts (generated)
+artifacts/
