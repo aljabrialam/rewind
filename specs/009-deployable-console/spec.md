@@ -271,7 +271,9 @@ states plainly, throughout, that a replay is playing and it is not a live push.
   currently displayed fixture, plays the run's stages back through the same view
   over a short span and then resumes the live view — deriving every frame
   client-side, making no network call, and stating on screen throughout that a
-  recorded replay is playing and it is not a live push.
+  recorded replay is playing and it is not a live push. Each frame MUST show a
+  short plain-language caption of the beat it depicts, so a non-technical viewer
+  can follow the replay without reading the executed commands.
 
 ### Non-Functional Requirements
 
@@ -311,9 +313,10 @@ states plainly, throughout, that a replay is playing and it is not a live push.
   sends `fixtures/tree.json` to the endpoint with the shared secret.
 - **Shared Secret**: the token an upload must carry, compared only on the
   endpoint side, never shipped to the browser.
-- **Replay**: a client-only playback that derives a short sequence of frames from
-  the displayed fixture and steps the view through the run's stages, then resumes
-  the live view. It never runs the engine and makes no network call.
+- **Replay**: a client-only playback that derives a short sequence of frames —
+  each with a plain-language caption — from the displayed fixture and steps the
+  view through the run's stages, then resumes the live view. It never runs the
+  engine and makes no network call.
 
 ## Success Criteria *(mandatory)*
 
