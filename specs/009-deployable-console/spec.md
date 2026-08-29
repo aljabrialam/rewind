@@ -182,6 +182,36 @@ sample.
 
 ---
 
+### User Story 5 - Replay the run for a viewer (Priority: P3)
+
+A viewer who arrives after the run has finished can press one control and watch
+the run's shape play back through the same console — seed steps appearing, a step
+failing, the head returning to the last good checkpoint, three branches fanning
+out, then the verdict — over a short span, then the console returns to the live
+view.
+
+**Why this priority**: The hosted console's audience often opens the link when
+nothing is running. A replay turns a static end-state into the story the room
+saw, without touching the engine.
+
+**Independent Test**: With the console showing a finished run, press the replay
+control; confirm the view animates through the run's stages and, on completion,
+returns to whatever the fixture endpoint currently serves; confirm the console
+states plainly, throughout, that a replay is playing and it is not a live push.
+
+**Acceptance Scenarios**:
+
+1. **Given** a finished run is on screen, **When** the viewer starts a replay,
+   **Then** the console steps through the run's stages (seed → failure → rewind →
+   fan-out → verdict) derived from the current fixture, making no network call.
+2. **Given** a replay is playing, **When** the console renders, **Then** it shows
+   an on-screen statement that a recorded replay is playing, not a live push.
+3. **Given** a replay reaches its end, or the viewer stops it, **When** it
+   finishes, **Then** the console resumes rendering the fixture the endpoint
+   serves, on the normal poll.
+
+---
+
 ### Edge Cases
 
 - The endpoint is reachable but returns a fixture that fails the shape check on
@@ -237,6 +267,11 @@ sample.
   executed instructions) in monospace and every console-derived value (headings,
   labels, counts, verdict prose, state words) in the interface face, matching
   Specification 006 FR-006-09.
+- **FR-009-11**: The hosted console MUST offer a replay control that, from the
+  currently displayed fixture, plays the run's stages back through the same view
+  over a short span and then resumes the live view — deriving every frame
+  client-side, making no network call, and stating on screen throughout that a
+  recorded replay is playing and it is not a live push.
 
 ### Non-Functional Requirements
 
@@ -276,6 +311,9 @@ sample.
   sends `fixtures/tree.json` to the endpoint with the shared secret.
 - **Shared Secret**: the token an upload must carry, compared only on the
   endpoint side, never shipped to the browser.
+- **Replay**: a client-only playback that derives a short sequence of frames from
+  the displayed fixture and steps the view through the run's stages, then resumes
+  the live view. It never runs the engine and makes no network call.
 
 ## Success Criteria *(mandatory)*
 
@@ -304,6 +342,10 @@ sample.
   monospace and 100% of console-derived values in the interface face.
 - **SC-009-09**: The `web/` directory builds and deploys with no change to
   `src/rewind/`, the engine, or the Console Fixture shape.
+- **SC-009-10**: The replay control plays the run's stages (seed → failure →
+  rewind → fan-out → verdict) from the displayed fixture with 0 network calls,
+  shows a "recorded replay" statement for 100% of its duration, and returns to
+  the live view on completion or when stopped.
 
 ## Assumptions
 
@@ -349,3 +391,9 @@ sample.
 - Any automated test of visual rendering.
 - Wiring the orchestrator to consume the recorded requests (already out of scope
   in Specification 006).
+- Triggering a real engine run from the hosted console. The replay control
+  (FR-009-11) is a client-only playback of an already-recorded fixture; it does
+  not spawn a sandbox or call the engine. A real in-function run was considered
+  and rejected — it would put `DAYTONA_API_KEY` on a public endpoint (quota-abuse
+  surface, against Article XII) and a full run exceeds the deploy target's
+  function time limit on the current plan.

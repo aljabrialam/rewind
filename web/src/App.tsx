@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFixture } from "./useFixture";
-import { isBranchNode, type ActionRequest } from "./types";
+import { isBranchNode, type ActionRequest, type ConsoleFixture } from "./types";
+import { buildReplayFrames, REPLAY_FRAME_MS, REPLAY_HOLD_MS } from "./replay";
 import { Rail } from "./components/Rail";
 import { BranchLanes } from "./components/BranchLanes";
 import { VerdictCard } from "./components/VerdictCard";
@@ -14,9 +15,41 @@ const NOTICE: Record<string, string> = {
 };
 
 export default function App() {
-  const { fixture, source } = useFixture();
+  const { fixture: liveFixture, source } = useFixture();
   const [selected, setSelected] = useState<string | null>(null);
   const [requests, setRequests] = useState<ActionRequest[]>([]);
+
+  // --- replay: play the current run's shape back through the same components ---
+  const [replay, setReplay] = useState<{ frames: ConsoleFixture[]; i: number } | null>(
+    null,
+  );
+  const timer = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (!replay) return;
+    if (replay.i >= replay.frames.length - 1) {
+      timer.current = window.setTimeout(() => setReplay(null), REPLAY_HOLD_MS);
+      return () => window.clearTimeout(timer.current);
+    }
+    timer.current = window.setTimeout(
+      () => setReplay((r) => (r ? { ...r, i: r.i + 1 } : r)),
+      REPLAY_FRAME_MS,
+    );
+    return () => window.clearTimeout(timer.current);
+  }, [replay]);
+
+  function toggleReplay() {
+    if (replay) {
+      setReplay(null);
+      return;
+    }
+    const frames = buildReplayFrames(liveFixture);
+    setSelected(null);
+    setReplay({ frames, i: 0 });
+  }
+
+  const replaying = replay !== null;
+  const fixture = replaying ? replay!.frames[replay!.i] : liveFixture;
 
   const nodes = fixture.nodes ?? [];
   const branches = useMemo(
@@ -48,12 +81,31 @@ export default function App() {
 
   return (
     <>
-      <h1>Rewind</h1>
-      <div className="sub">
-        Every checkpoint is a snapshot, so any moment in the run is a branch
-        point.
+      <div className="topbar">
+        <div>
+          <h1>Rewind</h1>
+          <div className="sub">
+            Every checkpoint is a snapshot, so any moment in the run is a branch
+            point.
+          </div>
+        </div>
+        <button
+          className={`replayBtn${replaying ? " on" : ""}`}
+          onClick={toggleReplay}
+        >
+          {replaying
+            ? `■ Stop replay · ${replay!.i + 1}/${replay!.frames.length}`
+            : "▶ Replay run"}
+        </button>
       </div>
-      {source !== "live" && <div className="notice">{NOTICE[source]}</div>}
+
+      {replaying ? (
+        <div className="notice replay">
+          ▶ replaying a recorded run — not a live push
+        </div>
+      ) : (
+        source !== "live" && <div className="notice">{NOTICE[source]}</div>
+      )}
 
       <div className="grid">
         <section>

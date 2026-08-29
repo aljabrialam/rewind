@@ -10,11 +10,50 @@
 // logic, not UI rendering.
 
 import { timingSafeEqual } from "node:crypto";
-import bundled from "../public/tree.json";
+import { createRequire } from "node:module";
+
+// The shipped fallback fixture (FR-009-07). Loaded via createRequire so the
+// Node ESM runtime on the deploy target does not demand an `with { type: "json" }`
+// import attribute; the literal path keeps it in the traced function bundle.
+// Wrapped so a tracing miss degrades to a tiny inline fixture rather than a 500.
+const bundled: { head: string; nodes: unknown[] } = (() => {
+  try {
+    return createRequire(import.meta.url)("../public/tree.json");
+  } catch {
+    return {
+      head: "root",
+      live_sandboxes: 0,
+      session_elapsed: 0,
+      runtime_version: "—",
+      verdict: null,
+      nodes: [
+        {
+          id: "root",
+          index: 0,
+          instruction: "(no run yet)",
+          parent: null,
+          children: [],
+          sandbox: null,
+          state: "live",
+          snapshot: null,
+          created_at: "",
+          exit_code: 0,
+          stdout: "",
+          outcome: "ok",
+          terminal: null,
+          rationale: "",
+        },
+      ],
+    };
+  }
+})();
 
 export const MAX_BODY_BYTES = 512 * 1024; // 512 KiB (NFR-009-04)
 const TOKEN_HEADER = "x-rewind-token";
-const STORE_KEY = "fixture/current.json";
+// Each push writes a fresh, unique pathname under this prefix. GET reads the
+// newest and prunes the rest. This sidesteps the CDN cache floor on a fixed
+// public blob URL, so a push reaches the hosted console within one poll.
+const STORE_PREFIX = "fixture/current-";
 
 // --- shape gate (contract P3 / data-model §2) -------------------------------
 
@@ -136,31 +175,48 @@ async function makeBlobStore(): Promise<FixtureStore> {
       },
     };
   }
-  const { put, list } = await import("@vercel/blob");
+  const { put, list, del } = await import("@vercel/blob");
   return {
     token,
     writable: true,
     async get() {
       try {
-        const { blobs } = await list({ prefix: STORE_KEY, token: blobToken });
-        const hit = blobs.find((b) => b.pathname === STORE_KEY) ?? blobs[0];
-        if (!hit) return null;
-        const r = await fetch(hit.url, { cache: "no-store" });
-        return r.ok ? await r.text() : null;
-      } catch {
+        const { blobs } = await list({ prefix: STORE_PREFIX, token: blobToken });
+        if (blobs.length === 0) {
+          console.log("fixture GET: no stored blob, serving bundled");
+          return null;
+        }
+        const sorted = [...blobs].sort(
+          (a, b) => +new Date(b.uploadedAt) - +new Date(a.uploadedAt),
+        );
+        const newest = sorted[0];
+        const stale = sorted.slice(1);
+        if (stale.length) {
+          // best-effort prune; never blocks the read
+          del(stale.map((b) => b.url), { token: blobToken }).catch(() => {});
+        }
+        const r = await fetch(newest.url, { cache: "no-store" });
+        if (!r.ok) {
+          console.log("fixture GET: blob fetch not ok", r.status);
+          return null;
+        }
+        return await r.text();
+      } catch (e) {
+        console.log("fixture GET: store.get failed", String(e));
         return null;
       }
     },
     async put(body: string) {
-      // Cast keeps this tolerant of @vercel/blob version drift between the
-      // local types and the deploy runtime (allowOverwrite is newer).
-      await put(STORE_KEY, body, {
+      // Unique pathname per push -> the URL is new, so no CDN cache to fight.
+      // Cast keeps this tolerant of @vercel/blob option drift across versions.
+      const res = await put(`${STORE_PREFIX}${Date.now()}.json`, body, {
         access: "public",
         token: blobToken,
         contentType: "application/json",
-        addRandomSuffix: false,
-        allowOverwrite: true,
+        addRandomSuffix: true,
+        cacheControlMaxAge: 0,
       } as unknown as Parameters<typeof put>[2]);
+      console.log("fixture PUT: stored at", (res as { url?: string })?.url);
     },
   };
 }

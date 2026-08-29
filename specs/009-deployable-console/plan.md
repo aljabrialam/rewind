@@ -134,6 +134,7 @@ web/                              # NEW — the deployable console. Self-contain
     ├── App.tsx                    # layout + shared run-fixture state + selection
     ├── theme.css                  # Specification 006 palette + type as CSS custom properties (NFR-009-03)
     ├── sample.ts                  # the built-in SAMPLE fixture (FR-009-07)
+    ├── replay.ts                  # buildReplayFrames(fixture) -> ConsoleFixture[]: seed → fail → rewind → fan-out → verdict (FR-009-11)
     ├── types.ts                   # ConsoleFixture, RailNode, BranchProgress, Verdict — mirrors console_fixture() output
     ├── useFixture.ts              # poll hook: /api/fixture → /tree.json → SAMPLE; keep last good on failure (NFR-009-06)
     └── components/
@@ -143,6 +144,9 @@ web/                              # NEW — the deployable console. Self-contain
         ├── EvidencePanel.tsx      # FR-009-01 (exit + output; rationale separate & labelled) — FR-006-06/08
         ├── RequestsList.tsx       # FR-009-01 (restore/fan-out recorded client-side, no runtime call) — FR-006-03/04
         └── Footer.tsx             # FR-009-01 (live sandboxes, checkpoints, branches, session elapsed) — FR-006-07
+                                   # App.tsx also hosts the Replay control (FR-009-11): swaps the polled fixture
+                                   #   for replay.ts frames on a timer, "recorded replay" banner, resumes live on end
+
 
 tools/
 └── push_console.py               # NEW — POST fixtures/tree.json to the endpoint with REWIND_CONSOLE_TOKEN; best-effort

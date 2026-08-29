@@ -319,6 +319,8 @@ open http://localhost:8000/ui/console.html
 
 The console re-reads `fixtures/tree.json` every two seconds, so leave it open while `demo.py` runs.
 
+**Hosted console** — **https://rewind-console.vercel.app** is the same console rebuilt as a deployable React app (spec 009, in `web/`), for sharing the run view with anyone not at the presenter's machine. It is a shared view, not the live demo — the stage demo still runs locally against `ui/console.html`. Set `REWIND_CONSOLE_ENDPOINT` + `REWIND_CONSOLE_TOKEN` before `python demo.py` (or run `python tools/push_console.py`) to feed it; the push is best-effort and never affects the local run. A **▶ Replay run** button plays the current run's stages back through the view (seed → fail → rewind → fan-out → verdict) — client-only, no engine.
+
 The reasoning layer is provider-agnostic — `LLM_BASE_URL` unset uses the default provider, and `CRITIC_BASE_URL` routes the critic to a separate endpoint. The critic is the natural role to self-host: it is the high-volume one, its inputs are long and its outputs are small, and constrained decoding can guarantee the verdict schema at sampling time.
 
 ## What's real, and what isn't
@@ -377,6 +379,8 @@ src/rewind/providers.py         DaytonaProvider (real) + FakeProvider (offline)
 src/rewind/engine.py            checkpoint tree, step loop, branching, promotion
 demo.py                         the end-to-end path
 ui/console.html                 the timeline console
+web/                            the timeline console as a deployable React app (spec 009)
+tools/push_console.py           mirror fixtures/tree.json to the hosted console
 tests/unit                      pure logic, no network
 tests/contract                  live runtime and reasoning endpoint
 tools/spine_test.py             the script that chose this project

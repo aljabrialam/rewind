@@ -3,6 +3,11 @@
 The hosted console lives entirely in `web/`. `ui/console.html` and the engine are
 untouched.
 
+**Live deployment:** https://rewind-console.vercel.app — Vercel project
+`aljs-projects/rewind-console`, root directory `web/`, Blob store
+`rewind-fixture`. `REWIND_CONSOLE_TOKEN` and `BLOB_READ_WRITE_TOKEN` are set for
+all three environments. The endpoint is `https://rewind-console.vercel.app/api/fixture`.
+
 ---
 
 ## Local dev
@@ -70,6 +75,7 @@ view points at Specification 006's checklist).
 | FR-009-08 no runtime/engine connection | `va` D4 (Network tab: only `/api/fixture` + `/tree.json`) |
 | FR-009-09 push optional; failure never affects the local run | `ep` (helper contract) + `va` D5 (`demo.py` with no env vars = unchanged) |
 | FR-009-10 mono = runtime-issued, face = derived | `va` FR-006-09 (reused) |
+| FR-009-11 replay control — client-only playback, honest banner, resumes live | `va` R1 (press Replay on the deployed URL; Network tab shows no call) |
 | NFR-009-01 build step scoped to `web/`; `ui/console.html` unchanged | `va` D6 (`git status` shows no `ui/` change) |
 | NFR-009-02 deployable from `web/` alone | `va` D1 (root dir `web/`) |
 | NFR-009-03 matches Specification 006 Design Reference | `va` (palette / type / layout, reused from 006) |
@@ -88,6 +94,7 @@ view points at Specification 006's checklist).
 | SC-009-07 | `va` D7 |
 | SC-009-08 | `va` FR-006-09 (reused) |
 | SC-009-09 | `va` D6 |
+| SC-009-10 | `va` R1 |
 
 ---
 

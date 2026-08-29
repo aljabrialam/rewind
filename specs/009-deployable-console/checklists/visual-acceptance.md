@@ -73,10 +73,26 @@ run `FAKE=1 python demo.py`.
 - [ ] `grep -ri "blob_read_write_token\|BLOB_READ_WRITE" web/dist` returns nothing
 - [ ] No `VITE_`-prefixed variable holds a secret
 
+### R1 — replay control  *(FR-009-11, SC-009-10)*
+
+- [ ] With a finished run on screen, pressing **▶ Replay run** steps the view through seed → step-fails → head returns to the good checkpoint → three branches fan out (creating → running → done/failed) → verdict, over ~15–20s
+- [ ] A green "▶ replaying a recorded run — not a live push" banner is visible for the whole replay
+- [ ] The button shows progress (`■ Stop replay · n/N`) and stops the replay immediately when pressed again
+- [ ] On completion (or stop) the console resumes rendering whatever `/api/fixture` currently serves, on the 2s poll
+- [ ] The browser Network tab shows **no** request during the replay
+
 ---
 
 ## Result
 
-- Run at: __________  by: __________
-- 006 parity: ____ / 10   Deploy-only: ____ / 7
+- Endpoint verified live at **https://rewind-console.vercel.app** (2026-08-29, via curl + `tools/push_console.py`):
+  - D1 root dir `web/`, deployed URL renders ✅
+  - D2 `push_console.py` → `GET /api/fixture` reflects the new fixture within one poll ✅
+  - D3 empty store → bundled `public/tree.json`; client falls to sample when offline ✅ (bundled path confirmed; sample path is client-only, check in a browser)
+  - D3 no-blob → `POST` returns `501`, `GET` still serves bundled ✅
+  - D4 endpoint is the only network call — confirm in a browser Network tab (curl-level: only `/api/fixture` + `/tree.json` exist) ✅ (pending browser)
+  - D5 `demo.py` with no env vars unchanged; helper prints one line and exits 0 on a bad endpoint ✅
+  - D-reject: no token → `401`, wrong token → `401`, malformed body → `422`, oversize → `413`, `DELETE` → `405` + `Allow: GET, POST` ✅
+  - D7 `grep` deployed JS bundle for the token / `BLOB_READ_WRITE` / `vercel-storage.com` → 0 hits ✅
+- **Pending (need a browser on the deployed URL):** Part 1 006-parity visual pass, D3 sample-notice, D4 Network-tab, D6 `git status` clean under `src/rewind/` + `ui/`.
 - Deferred items (with reason) recorded in `docs/gates.md`.

@@ -115,10 +115,22 @@ Everything new is under `web/` or `tools/`. `demo.py` gets one additive env-gate
 
 ---
 
+## Phase 7b: User Story 5 — Replay the run for a viewer (Priority: P3) — FR-009-11
+
+**Goal**: one control plays the run's stages back through the console, client-only, no engine, no network; honest "recorded replay" banner; resumes the live view on end.
+
+- [X] T027a [US5] `web/src/replay.ts` — `buildReplayFrames(fixture): ConsoleFixture[]`: progressive rail reveal → rewind (head → branch parent) → fan-out frames cycling `creating`/`running`/`done|failed` with `live_sandboxes` ramping → verdict frame (winner promoted to head, losers `released`). `session_elapsed` ramps. Falls back to plain rail reveal when the fixture has no branch nodes
+- [X] T027b [US5] `web/src/App.tsx` — Replay / Stop button in a `.topbar`; while replaying, render `frames[i]` instead of the polled fixture, advance on `REPLAY_FRAME_MS`, hold `REPLAY_HOLD_MS` on the last frame, then `setReplay(null)` to resume the poll; show a green "▶ replaying a recorded run — not a live push" banner throughout (FR-009-11 / SC-009-10); clear selection on start
+- [X] T027c [US5] `web/src/theme.css` — `.topbar`, `.replayBtn` (+ `.on`), `.notice.replay`
+
+**Manual check**: press Replay on the deployed URL — the view steps seed → fail → rewind → fan-out → verdict over ~19s, the banner shows the whole time, and it returns to the live fixture at the end; the Network tab shows no request during replay.
+
+---
+
 ## Phase 8: Polish & Deploy
 
-- [ ] T028 Deploy `web/` to Vercel: root dir `web/`, set `REWIND_CONSOLE_TOKEN` + `BLOB_READ_WRITE_TOKEN`, create the Blob store. Record the URL
-- [ ] T029 [P] `web/dist` secret grep — `grep -r "<token value>" web/dist` and `grep -ri blob_read_write web/dist` return nothing (NFR-009-05 / SC-009-07 / D7)
+- [X] T028 Deploy `web/` to Vercel: root dir `web/`, `REWIND_CONSOLE_TOKEN` + `BLOB_READ_WRITE_TOKEN` set for all envs, Blob store `rewind-fixture` created + linked. URL: **https://rewind-console.vercel.app**
+- [X] T029 [P] `web/dist` + deployed bundle secret grep — token value / `BLOB_READ_WRITE` / `vercel-storage.com` → 0 hits (NFR-009-05 / SC-009-07 / D7)
 - [X] T030 [P] `README.md` — add a "Hosted console" line under the timeline-console section: what the URL is, that it is a **shared view of the run, not the live demo**, and how to push to it (Articles XI, XIII)
 - [X] T031 [P] `docs/timeline-console.md` — add a short "Deployable version (spec 009)" section pointing at `web/` and this spec
 - [ ] T032 Run the full [checklists/visual-acceptance.md](checklists/visual-acceptance.md) (Part 1 006-parity on the deployed URL + Part 2 D1–D7); record the result and any deferred item in `docs/gates.md`

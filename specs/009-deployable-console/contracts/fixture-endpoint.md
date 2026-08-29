@@ -26,6 +26,14 @@ Returns the current console fixture.
 
 Replaces the current fixture. Authenticated, shape-checked, size-capped.
 
+**Storage note (implementation):** each accepted `POST` writes a *new* uniquely
+named blob under the prefix `fixture/current-`; `GET` reads the most-recently
+uploaded one and best-effort deletes the older ones. A fixed pathname was tried
+first but the deploy target's public-blob CDN has a cache floor that delayed a
+push reaching `GET` by up to ~30s; unique names per push give a fresh URL with
+nothing cached, so a push lands within one poll (NFR-009-06). The store still
+holds exactly one live fixture in steady state.
+
 | # | Obligation | Trace |
 |---|---|---|
 | P1 | Requires `x-rewind-token` equal to `REWIND_CONSOLE_TOKEN` (constant-time compare). Missing or wrong → `401`, **no state change**. | FR-009-05 |
