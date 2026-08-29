@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rewind — console</title>
+<style>
+  :root{
+    --ground:#0D1117; --rail:#1F2937; --ink:#E6EDF3; --muted:#8B949E;
+    --live:#00D492; --branch:#D29922; --won:#388BFD; --killed:#8B3A34;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);
+       font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+       padding:24px 28px 84px;overflow-x:hidden}
+  /* .mono = a value the RUNTIME issued (sandbox/checkpoint id, exit code, output,
+     executed instruction, runtime version). Everything else is console-derived
+     and stays in the interface face. (FR-006-09) */
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  h1{font-size:19px;margin:0 0 2px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.15fr);gap:26px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  h2{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
+     margin:0 0 12px;font-weight:600}
+  h2 .pid{text-transform:none;letter-spacing:0;color:var(--muted)}
+
+  /* rail */
+  .rail{position:relative;padding-left:22px}
+  .rail:before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--rail)}
+  .node{position:relative;padding:9px 12px;margin-bottom:6px;border-radius:5px;cursor:pointer;
+        border-left:2px solid transparent;background:transparent;transition:background .12s}
+  .node:hover{background:#161B22}
+  .node.sel{background:#161B22;border-left-color:var(--live)}
+  .node:before{content:"";position:absolute;left:-21px;top:15px;width:9px;height:9px;
+               border-radius:50%;background:var(--rail);border:2px solid var(--ground)}
+  .node.ok:before{background:var(--live)}
+  .node.fail:before{background:var(--killed)}
+  .node.head:before{box-shadow:0 0 0 3px rgba(0,212,146,.28)}
+  .node.head .cmd:after{content:"HEAD";float:right;font-size:9px;letter-spacing:.12em;
+               color:var(--live);font-family:inherit;margin-left:8px}
+  .cmd{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meta{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .weight{padding:13px 12px;border-left-width:3px}
+  .weight.failure{border-left-color:var(--killed)}
+
+  /* branches */
+  .lanes{display:grid;gap:10px;margin-bottom:22px;border-left:2px solid var(--rail);padding-left:14px}
+  .lane{border:1px solid var(--rail);border-radius:6px;padding:11px 13px;background:#0F141A;cursor:pointer}
+  .lane.won{border-color:var(--won);box-shadow:inset 3px 0 0 var(--won)}
+  .lane.killed{opacity:.55;box-shadow:inset 3px 0 0 var(--killed)}
+  .lane.running{box-shadow:inset 3px 0 0 var(--branch)}
+  .lane.sel{background:#161B22}
+  .laneTop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .laneTop b{font-weight:600}
+  .sbid{font-size:11px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tag{font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+  .tag.won{color:var(--won)} .tag.killed{color:var(--killed)} .tag.running{color:var(--branch)} .tag.done{color:var(--live)}
+
+  /* verdict + evidence */
+  .verdict{border:1px solid var(--won);border-radius:6px;padding:13px;margin-bottom:22px;
+           background:rgba(56,139,253,.07)}
+  .verdict .who{font-size:11px;color:var(--muted);margin-top:7px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .controls button{font:inherit;font-size:12px;color:var(--ink);background:#161B22;
+        border:1px solid var(--rail);border-radius:5px;padding:6px 11px;cursor:pointer}
+  .controls button:hover:not(:disabled){border-color:var(--live)}
+  .controls button:disabled{opacity:.4;cursor:not-allowed}
+  pre{background:#0F141A;border:1px solid var(--rail);border-radius:6px;padding:12px;
+      font-size:12px;overflow:auto;max-height:210px;margin:0;white-space:pre-wrap;word-break:break-word}
+  .rationale{border-left:2px solid var(--branch);padding-left:10px;color:var(--muted);
+             font-size:12.5px;margin:10px 0 0;font-style:italic}
+  .rationale .lbl{font-style:normal;color:var(--branch);font-size:10px;letter-spacing:.08em;
+             text-transform:uppercase;display:block;margin-bottom:3px}
+  .exit{font-size:12px;margin-bottom:8px}
+  .exit b.g{color:var(--live)} .exit b.r{color:var(--killed)}
+  .reqs{margin-top:14px;font-size:11.5px;color:var(--muted)}
+  .reqs .r{border:1px solid var(--rail);border-radius:5px;padding:6px 9px;margin-top:5px}
+  .reqs .r b{color:var(--ink)}
+
+  footer{position:fixed;left:0;right:0;bottom:0;background:#0B0F14;border-top:1px solid var(--rail);
+         padding:9px 28px;display:flex;gap:22px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+  footer b{color:var(--ink);font-weight:500}
+  .sample-note{color:var(--branch);font-size:11px;margin-bottom:14px;display:none}
+</style>
+</head>
+<body>
+<h1>Rewind</h1>
+<div class="sub">Every checkpoint is a snapshot, so any moment in the run is a branch point.</div>
+<div class="sample-note" id="sampleNote">sample data — serve with a static file server to see a live run</div>
+
+<div class="grid">
+  <section>
+    <h2>Checkpoints</h2>
+    <div class="rail" id="rail"></div>
+  </section>
+
+  <section>
+    <h2 id="lanesTitle">Branches</h2>
+    <div class="lanes" id="lanes"></div>
+    <div id="verdict"></div>
+
+    <h2>Evidence</h2>
+    <div class="controls">
+      <button id="btnRestore" disabled>Restore to this checkpoint</button>
+      <button id="btnFanout" disabled>Fan out from this checkpoint</button>
+    </div>
+    <div class="exit" id="exit"></div>
+    <pre id="stdout">Select a checkpoint.</pre>
+    <div class="rationale" id="rationale" hidden></div>
+    <div class="reqs" id="reqs"></div>
+  </section>
+</div>
+
+<footer>
+  <span>live sandboxes <b id="fLive">0</b></span>
+  <span>checkpoints <b id="fNodes">0</b></span>
+  <span>branches <b id="fBranch">0</b></span>
+  <span>session <b id="fTime">0.0s</b></span>
+  <span style="margin-left:auto">daytona <b class="mono" id="fVer">—</b></span>
+</footer>
+
+<script>
+const SAMPLE = { head:"root", live_sandboxes:0, session_elapsed:0, runtime_version:"—", verdict:null,
+  nodes:[{ id:"root", index:0, instruction:"(start)", parent:null, children:[],
+    sandbox:"waiting for fixtures/tree.json", state:"live", exit_code:0, stdout:"", rationale:"" }] };
+
+let T = SAMPLE, sel = null, requests = [];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+async function load(){
+  try{
+    const r = await fetch('../fixtures/tree.json?' + Date.now());
+    if(r.ok){ T = await r.json(); $('sampleNote').style.display = 'none'; }   // whole-fixture swap only
+  }catch(e){ $('sampleNote').style.display = 'block'; }   // file:// — keep last good T / sample
+  render();
+}
+
+const isBranch = n => n.branch === true;
+
+function render(){
+  const nodes = T.nodes || [];
+  if(sel && !nodes.some(n => n.id === sel)) sel = T.head;   // selection released -> fall back to head
+
+  // ---- rail (FR-006-01) --------------------------------------------------
+  const rail = $('rail'); rail.innerHTML = '';
+  nodes.filter(n => !isBranch(n)).forEach(n => {
+    const failed = n.exit_code !== 0 && n.exit_code !== null;
+    const d = document.createElement('div');
+    d.className = 'node ' + (failed ? 'fail weight failure' : 'ok')
+               + (n.id === T.head ? ' head' : '') + (n.id === sel ? ' sel' : '');
+    d.innerHTML = `<div class="cmd mono">${esc(n.instruction).slice(0,80)}</div>
+      <div class="meta"><span class="mono">#${n.index} · ${esc(n.id)} · ${esc(n.sandbox||'')}</span>${
+        failed ? ' · <span class="mono" style="color:var(--killed)">exit '+n.exit_code+'</span>' : ''}</div>`;
+    d.onclick = () => { sel = n.id; render(); };
+    rail.appendChild(d);
+  });
+
+  // ---- branch lanes (FR-006-02, FR-006-05) -----------------------------
+  const bs = nodes.filter(isBranch);
+  const parentId = bs.length ? bs[0].parent : null;
+  $('lanesTitle').innerHTML = bs.length
+    ? `Branches <span class="pid">from <span class="mono">${esc(parentId)}</span></span>` : 'Branches';
+  const lanes = $('lanes'); lanes.innerHTML = '';
+  bs.forEach((n,i) => {
+    const st = (n.progress && n.progress.state) || n.terminal || n.state || 'done';
+    const rel = n.state === 'released';
+    const cls = rel ? 'killed' : (n.id === T.head ? 'won' : (st === 'done' ? 'running' : 'running'));
+    const tag = rel ? 'released' : (n.id === T.head ? 'promoted' : st);
+    const el = (n.progress && typeof n.progress.elapsed_seconds === 'number')
+      ? n.progress.elapsed_seconds.toFixed(2) + 's' : '';
+    const d = document.createElement('div');
+    d.className = 'lane ' + cls + (n.id === sel ? ' sel' : '');
+    d.innerHTML = `<div class="laneTop"><b>Branch ${i}</b>
+        <span class="tag ${rel?'killed':(n.id===T.head?'won':st)}">${esc(tag)}${el?' · '+el:''}</span></div>
+      <div class="sbid mono">${esc(n.sandbox||'(no sandbox)')} · exit ${n.exit_code}</div>
+      <div class="cmd mono" style="margin-top:6px;color:var(--muted)">${esc(n.instruction).slice(0,70)}</div>`;
+    d.onclick = () => { sel = n.id; render(); };
+    lanes.appendChild(d);
+  });
+  if(!bs.length) lanes.innerHTML = '<div class="sbid">No branches yet.</div>';
+
+  // ---- verdict (Article X) -------------------------------------------------
+  $('verdict').innerHTML = T.verdict ? `<div class="verdict"><b>Verdict</b>
+      <div style="margin-top:5px">${esc(T.verdict.reason)}</div>
+      <div class="who">judged on execution evidence · served by <span class="mono">${
+        esc(T.verdict.served_by || T.verdict.provider || 'primary')}</span></div></div>` : '';
+
+  // ---- evidence + controls (FR-006-03/04/06/08) ------------------------
+  const n = nodes.find(x => x.id === sel);
+  $('btnRestore').disabled = !n;
+  $('btnFanout').disabled = !n;
+  $('exit').innerHTML = n
+    ? `exit code <b class="${n.exit_code ? 'r':'g'} mono">${n.exit_code}</b>` : '';
+  $('stdout').textContent = n ? (n.stdout || '(no output)') : 'Select a checkpoint.';
+  const rt = $('rationale');
+  if(n && n.rationale){
+    rt.hidden = false;
+    rt.innerHTML = `<span class="lbl">agent rationale — not evidence</span>${esc(n.rationale)}`;
+  } else { rt.hidden = true; }
+
+  // ---- session counters (FR-006-07) — derived, so interface face -------
+  $('fNodes').textContent  = nodes.length;
+  $('fBranch').textContent = bs.length;
+  $('fLive').textContent   = (T.live_sandboxes ?? nodes.filter(x => x.state === 'live').length);
+  $('fTime').textContent   = ((T.session_elapsed ?? 0)).toFixed(1) + 's';
+  $('fVer').textContent    = T.runtime_version || '—';
+}
+
+// ---- action requests (FR-006-03/04) — recorded, NO runtime call ----------
+function recordRequest(kind){
+  if(!sel) return;
+  const req = { kind, checkpoint_id: sel, requested_at: new Date().toISOString() };
+  requests.unshift(req);
+  console.log('rewind console request:', JSON.stringify(req));
+  const box = $('reqs');
+  box.innerHTML = '<div style="margin-bottom:2px">requests (for the orchestrator — the console makes no runtime call)</div>'
+    + requests.slice(0,6).map(r =>
+        `<div class="r"><b>${r.kind}</b> → <span class="mono">${esc(r.checkpoint_id)}</span> · ${r.requested_at.slice(11,19)}</div>`).join('');
+}
+$('btnRestore').onclick = () => recordRequest('restore');
+$('btnFanout').onclick  = () => recordRequest('fan_out');
+
+setInterval(load, 2000);   // NFR-006-02 — re-read the fixture, no manual refresh
+load();
+</script>
+</body>
+</html>

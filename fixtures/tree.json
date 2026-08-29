@@ -1,0 +1,195 @@
+{
+  "head": "9913167b",
+  "nodes": [
+    {
+      "id": "root",
+      "index": 0,
+      "instruction": "(start)",
+      "parent": null,
+      "children": [
+        "72a838c6"
+      ],
+      "sandbox": "fake-0002",
+      "state": "live",
+      "snapshot": "fake-cp-92e186",
+      "created_at": "2026-08-29T07:54:13.345074+00:00",
+      "exit_code": null,
+      "stdout": "",
+      "outcome": "failed",
+      "terminal": null,
+      "rationale": ""
+    },
+    {
+      "id": "72a838c6",
+      "index": 1,
+      "instruction": "echo 'def add(a,b): return a+b' > calc.py",
+      "parent": "root",
+      "children": [
+        "fa0dc11a",
+        "9913167b",
+        "2629190c",
+        "1f52d0b3"
+      ],
+      "sandbox": "fake-0002",
+      "state": "live",
+      "snapshot": "fake-cp-78c45e",
+      "created_at": "2026-08-29T07:54:13.345298+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "outcome": "ok",
+      "terminal": null,
+      "rationale": ""
+    },
+    {
+      "id": "fa0dc11a",
+      "index": 2,
+      "instruction": "echo 'assert add(2,2)==4' > test.py",
+      "parent": "72a838c6",
+      "children": [
+        "47d3438e"
+      ],
+      "sandbox": "fake-0002",
+      "state": "live",
+      "snapshot": "fake-cp-92459d",
+      "created_at": "2026-08-29T07:54:13.345318+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "outcome": "ok",
+      "terminal": null,
+      "rationale": ""
+    },
+    {
+      "id": "47d3438e",
+      "index": 3,
+      "instruction": "python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "fa0dc11a",
+      "children": [
+        "f7a88ab3"
+      ],
+      "sandbox": "fake-0002",
+      "state": "live",
+      "snapshot": "fake-cp-77f8ea",
+      "created_at": "2026-08-29T07:54:13.345331+00:00",
+      "exit_code": 0,
+      "stdout": "ran: python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "outcome": "ok",
+      "terminal": null,
+      "rationale": ""
+    },
+    {
+      "id": "f7a88ab3",
+      "index": 4,
+      "instruction": "echo 'def add(a,b): return a-b' > calc.py",
+      "parent": "47d3438e",
+      "children": [
+        "81f32535"
+      ],
+      "sandbox": "fake-0002",
+      "state": "live",
+      "snapshot": "fake-cp-ddae1d",
+      "created_at": "2026-08-29T07:54:13.345341+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "outcome": "ok",
+      "terminal": null,
+      "rationale": ""
+    },
+    {
+      "id": "81f32535",
+      "index": 5,
+      "instruction": "python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "f7a88ab3",
+      "children": [],
+      "sandbox": "fake-0002",
+      "state": "live",
+      "snapshot": null,
+      "created_at": "2026-08-29T07:54:13.345348+00:00",
+      "exit_code": 1,
+      "stdout": "AssertionError: add(2,2) != 4",
+      "outcome": "failed",
+      "terminal": "failed",
+      "rationale": ""
+    },
+    {
+      "id": "9913167b",
+      "index": 6,
+      "instruction": "echo 'def add(a,b): return a+b' > calc.py && python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "72a838c6",
+      "children": [],
+      "sandbox": "fake-0004",
+      "state": "live",
+      "snapshot": "fake-cp-63785a",
+      "created_at": "2026-08-29T07:54:13.345559+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "outcome": "ok",
+      "terminal": null,
+      "rationale": "scripted candidate continuation",
+      "branch": true,
+      "progress": {
+        "state": "done",
+        "elapsed_seconds": 0.01
+      }
+    },
+    {
+      "id": "2629190c",
+      "index": 7,
+      "instruction": "echo 'def add(a,b): return sum([a,b])' > calc.py && python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "72a838c6",
+      "children": [],
+      "sandbox": "fake-0005",
+      "state": "released",
+      "snapshot": "fake-cp-a20144",
+      "created_at": "2026-08-29T07:54:13.345575+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "outcome": "ok",
+      "terminal": "abandoned",
+      "rationale": "scripted candidate continuation",
+      "branch": true,
+      "progress": {
+        "state": "done",
+        "elapsed_seconds": 0.01
+      }
+    },
+    {
+      "id": "1f52d0b3",
+      "index": 8,
+      "instruction": "echo 'def add(a,b): return a*b' > calc.py && python3 -c \"exec(open('calc.py').read()); exec(open('test.py').read()); print('PASS')\"",
+      "parent": "72a838c6",
+      "children": [],
+      "sandbox": "fake-0006",
+      "state": "released",
+      "snapshot": "fake-cp-8c9334",
+      "created_at": "2026-08-29T07:54:13.345635+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "outcome": "ok",
+      "terminal": "abandoned",
+      "rationale": "scripted candidate continuation",
+      "branch": true,
+      "progress": {
+        "state": "done",
+        "elapsed_seconds": 0.01
+      }
+    }
+  ],
+  "live_sandboxes": 3,
+  "session_elapsed": 0.0,
+  "runtime_version": "v0.207.0",
+  "verdict": {
+    "chosen": "9913167b",
+    "scores": {
+      "9913167b": 1.0,
+      "2629190c": 0.4,
+      "1f52d0b3": 0.4
+    },
+    "reason": "branch 9913167b exited 0 with usable output",
+    "reason_unsupported": false,
+    "fallback_used": false,
+    "fallback_trigger": null,
+    "excluded": [],
+    "served_by": "primary",
+    "recorded_at": "2026-08-29T07:54:13.345870+00:00"
+  }
+}

@@ -1,0 +1,20 @@
+[project]
+name = "rewind"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["daytona"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-m 'not live'"
+markers = [
+    "live: hits the real Daytona account and network; skipped unless DAYTONA_API_KEY is set",
+]

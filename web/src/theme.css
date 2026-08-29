@@ -1,0 +1,342 @@
+/* Spec 009 — palette + type copied verbatim from ui/console.html (spec 006
+   Design Reference). Dark theme only, no toggle (NFR-009-03). */
+
+:root {
+  --ground: #0d1117;
+  --rail: #1f2937;
+  --ink: #e6edf3;
+  --muted: #8b949e;
+  --live: #00d492;
+  --branch: #d29922;
+  --won: #388bfd;
+  --killed: #8b3a34;
+
+  --face: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 15px/1.5 var(--face);
+  padding: 24px 28px 84px;
+  overflow-x: hidden;
+}
+
+/* .mono = a value the RUNTIME issued (sandbox/checkpoint id, exit code, output,
+   executed instruction, runtime version). Everything else is console-derived
+   and stays in the interface face. (FR-009-10 / FR-006-09) */
+.mono {
+  font-family: var(--mono);
+}
+
+h1 {
+  font-size: 19px;
+  margin: 0 0 2px;
+  letter-spacing: -0.01em;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.notice {
+  color: var(--branch);
+  font-size: 11px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(210, 153, 34, 0.4);
+  border-radius: 5px;
+  padding: 6px 9px;
+  display: inline-block;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.15fr);
+  gap: 26px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+h2 .pid {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+/* rail */
+.rail {
+  position: relative;
+  padding-left: 22px;
+}
+.rail:before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--rail);
+}
+.node {
+  position: relative;
+  padding: 9px 12px;
+  margin-bottom: 6px;
+  border-radius: 5px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  background: transparent;
+  transition: background 0.12s;
+}
+.node:hover {
+  background: #161b22;
+}
+.node.sel {
+  background: #161b22;
+  border-left-color: var(--live);
+}
+.node:before {
+  content: "";
+  position: absolute;
+  left: -21px;
+  top: 15px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rail);
+  border: 2px solid var(--ground);
+}
+.node.ok:before {
+  background: var(--live);
+}
+.node.fail:before {
+  background: var(--killed);
+}
+.node.head:before {
+  box-shadow: 0 0 0 3px rgba(0, 212, 146, 0.28);
+}
+.node.head .cmd:after {
+  content: "HEAD";
+  float: right;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--live);
+  font-family: var(--face);
+  margin-left: 8px;
+}
+.cmd {
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.weight {
+  padding: 13px 12px;
+  border-left-width: 3px;
+}
+.weight.failure {
+  border-left-color: var(--killed);
+}
+
+/* branches */
+.lanes {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 22px;
+  border-left: 2px solid var(--rail);
+  padding-left: 14px;
+}
+.lane {
+  border: 1px solid var(--rail);
+  border-radius: 6px;
+  padding: 11px 13px;
+  background: #0f141a;
+  cursor: pointer;
+}
+.lane.won {
+  border-color: var(--won);
+  box-shadow: inset 3px 0 0 var(--won);
+}
+.lane.killed {
+  opacity: 0.55;
+  box-shadow: inset 3px 0 0 var(--killed);
+}
+.lane.running {
+  box-shadow: inset 3px 0 0 var(--branch);
+}
+.lane.sel {
+  background: #161b22;
+}
+.laneTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.laneTop b {
+  font-weight: 600;
+}
+.sbid {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tag {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tag.won {
+  color: var(--won);
+}
+.tag.killed {
+  color: var(--killed);
+}
+.tag.running {
+  color: var(--branch);
+}
+.tag.done {
+  color: var(--live);
+}
+
+/* verdict + evidence */
+.verdict {
+  border: 1px solid var(--won);
+  border-radius: 6px;
+  padding: 13px;
+  margin-bottom: 22px;
+  background: rgba(56, 139, 253, 0.07);
+}
+.verdict .who {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 7px;
+}
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.controls button {
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  background: #161b22;
+  border: 1px solid var(--rail);
+  border-radius: 5px;
+  padding: 6px 11px;
+  cursor: pointer;
+}
+.controls button:hover:not(:disabled) {
+  border-color: var(--live);
+}
+.controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+pre {
+  background: #0f141a;
+  border: 1px solid var(--rail);
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 12px;
+  overflow: auto;
+  max-height: 210px;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.rationale {
+  border-left: 2px solid var(--branch);
+  padding-left: 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+  margin: 10px 0 0;
+  font-style: italic;
+}
+.rationale .lbl {
+  font-style: normal;
+  color: var(--branch);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 3px;
+}
+.exit {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.exit b.g {
+  color: var(--live);
+}
+.exit b.r {
+  color: var(--killed);
+}
+.reqs {
+  margin-top: 14px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.reqs .r {
+  border: 1px solid var(--rail);
+  border-radius: 5px;
+  padding: 6px 9px;
+  margin-top: 5px;
+}
+.reqs .r b {
+  color: var(--ink);
+}
+
+footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #0b0f14;
+  border-top: 1px solid var(--rail);
+  padding: 9px 28px;
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+footer b {
+  color: var(--ink);
+  font-weight: 500;
+}

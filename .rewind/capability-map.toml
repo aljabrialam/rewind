@@ -1,0 +1,45 @@
+# .rewind/capability-map.toml  — GENERATED from a live account run, do not edit by hand.
+# Source of truth for src/rewind/capabilities.py (import-time guard).
+# Human-readable companion: .rewind/daytona-capability-map.md
+# Regenerate with: python tools/spine_test.py   (writes this file after the live run)
+
+runtime_version   = "v0.207.0"
+generated_at      = "2026-08-29T04:15:00Z"
+account_cpu_total = 10          # verified: total CPU 10 -> ~10 concurrent sandboxes
+max_branches      = 3           # verified: 3 branches from one snapshot, 6.8s total
+
+classes = ["container", "vm"]
+
+[[operation]]
+name           = "spawn"
+required_class = "container"
+post_condition = "create() returns a sandbox whose id is non-empty; `echo ok` in /home/daytona/work exits 0 before the handle is returned; auto-stop and auto-delete intervals are set"
+experimental   = false
+
+[[operation]]
+name           = "run"
+required_class = "container"
+post_condition = "process.exec(cmd) in /home/daytona/work returns the real exit code and stdout; elapsed > 0 (/work is not writable, /home/daytona/work is)"
+experimental   = false
+
+[[operation]]
+name           = "checkpoint"
+required_class = "container"
+post_condition = "create_snapshot(name) on a live sandbox returns a usable snapshot name in ~6.9s; a later branch from that name carries the filesystem state as of the call"
+experimental   = false
+
+[[operation]]
+name           = "branch"
+required_class = "container"
+post_condition = "create(CreateSandboxFromSnapshotParams(snapshot=name)) x n (n<=3) returns n sandboxes; each child shows the parent's pre-snapshot state; writes in one child are not visible in another"
+experimental   = false
+
+[[operation]]
+name           = "destroy"
+required_class = "container"
+post_condition = "delete(sandbox) removes it; the runtime no longer lists the id and the concurrency permit is freed"
+experimental   = false
+
+# fork() is intentionally absent: it exists on the SDK but returned HTTP 422
+# "not supported for this sandbox" on the container class, so its post-condition
+# was never asserted (Constitution Article XIII).
